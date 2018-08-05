@@ -44,6 +44,7 @@ public abstract class ProductRoomDatabase extends RoomDatabase{
     private static class PopulateDbAsync extends AsyncTask<Void, Void, Void> {
 
         private final ProductDao mDao;
+        Products word;
 
         PopulateDbAsync(ProductRoomDatabase db) {
             mDao = db.productDao();
@@ -51,15 +52,15 @@ public abstract class ProductRoomDatabase extends RoomDatabase{
 
         @Override
         protected Void doInBackground(final Void... params) {
-            mDao.deleteAll();
-            Products word = new Products(0,"Mont Blanc 149", "Gold-tip Mont Blanc (Black and Gold) Made in Switzerland", 678, "a1");
-            mDao.insert(word);
-            word = new Products(1,"Pelikan Premium M1000", "Gold/Silver tip Pelikan (Sea Green and Black) Made in France", 380, "a2");
-            mDao.insert(word);
-            word = new Products(2,"Pilot Custom 823", "Gold-tip Pilot (Brown and Gold) Made in Japan", 359, "a3");
-            mDao.insert(word);
-            word = new Products(3,"Platinum 3776 CENTURY", "Gold-tip Platinum (Royal Blue) Made in Belgium", 72, "a4");
-            mDao.insert(word);
+//            mDao.deleteAll();
+//            word = new Products(0,"Mont Blanc 149", "Gold-tip Mont Blanc (Black and Gold) Made in Switzerland", 678, "a1");
+//            mDao.insert(word);
+//            word = new Products(1,"Pelikan Premium M1000", "Gold/Silver tip Pelikan (Sea Green and Black) Made in France", 380, "a2");
+//            mDao.insert(word);
+//            word = new Products(2,"Pilot Custom 823", "Gold-tip Pilot (Brown and Gold) Made in Japan", 359, "a3");
+//            mDao.insert(word);
+//            word = new Products(3,"Platinum 3776 CENTURY", "Gold-tip Platinum (Royal Blue) Made in Belgium", 72, "a4");
+//            mDao.insert(word);
             return null;
         }
     }
