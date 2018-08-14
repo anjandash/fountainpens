@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -24,10 +26,21 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.stripe.android.model.Card;
 import com.stripe.android.view.CardInputWidget;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static android.content.Context.MODE_PRIVATE;
 
@@ -39,6 +52,11 @@ public class CheckoutActivity extends AppCompatActivity {
     int totalPrice;
     private SessionHandler session;
 
+    private static final String KEY_MESSAGE = "message";
+    private static final String KEY_USERNAME = "username";
+    private static final String KEY_PASSWORD = "password";
+    private String products_url = "http://pakango.it/member/getproducts.php"; // ******
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,6 +65,13 @@ public class CheckoutActivity extends AppCompatActivity {
 
         context = CheckoutActivity.this;
         String name="xxx";
+
+        // CHECK FOR NEW ITEMS
+        // DELETE ITEM IN SHARED PREF
+        if(isNetworkAvailable()){
+            checkProd();
+        }
+
 
 
         SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_FILE_NAME, MODE_PRIVATE);
@@ -157,6 +182,115 @@ public class CheckoutActivity extends AppCompatActivity {
 
     }
 
+    // *********************************************************************
+
+    private void checkProd() {
+
+        JSONObject request = new JSONObject();
+        try {
+            //Populate the request parameters
+            request.put(KEY_USERNAME, "username");
+            request.put(KEY_PASSWORD, "password");
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        JsonObjectRequest jsArrayRequest = new JsonObjectRequest
+                (Request.Method.POST, products_url, request, new Response.Listener<JSONObject>() {
+                    @Override
+                    public void onResponse(JSONObject response) {
+
+                        try {
+                            //Check if user got logged in successfully
+
+                            if (true) {
+
+
+                                JSONObject obj = new JSONObject(response.toString());
+                                int len = obj.length();
+                                int[] myIntArray = new int[len];
+
+                                for(int i = 0; i < len; i++){
+                                    JSONObject prod = obj.getJSONObject(Integer.toString(i));
+                                    Products x = new Products(Integer.parseInt(prod.getString("id")), prod.getString("product"), prod.getString("description"), Integer.parseInt(prod.getString("price")), prod.getString("image"));
+
+                                    // find id and check if it exists in sharedprefs
+                                    // warning: except empty cart
+
+                                    myIntArray[i] = Integer.parseInt(prod.getString("id"));
+
+                                }
+
+                                // pick each position / idName from sharedprefs and check through myIntArray
+                                SharedPreferences prefs = context.getSharedPreferences(SHARED_PREFS_FILE_NAME, MODE_PRIVATE);
+                                int count = prefs.getInt("count", 0);
+
+                                // check if idName exists in myIntArray
+                                // if true OK
+                                // if not delete shared pref input
+
+
+                                for(int i =0; i< count; i++){
+                                    int idNamex = prefs.getInt("idName"+(i+1), -1);
+
+                                    if(idNamex < 0){
+                                        continue;
+                                    }
+
+                                    boolean contains = Arrays.asList(myIntArray).contains(idNamex);
+                                    boolean cont = false;
+
+                                    for(int y = 0; y < myIntArray.length; y++){
+                                        if(myIntArray[y] == idNamex){
+                                            cont = true;
+                                        }
+                                    }
+
+                                    if(cont){
+                                        SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS_FILE_NAME, MODE_PRIVATE).edit();
+                                        editor.putInt("count", (i+1));
+                                        editor.putInt("idName"+(i+1), idNamex);
+                                        editor.apply();
+                                    } else {
+                                        // remove item from pr
+                                        SharedPreferences.Editor editor = getSharedPreferences(SHARED_PREFS_FILE_NAME, MODE_PRIVATE).edit();
+                                        editor.putInt("count", (i+1));
+                                        editor.putInt("idName"+(i+1), -2);
+                                        editor.apply();
+                                    }
+                                }
+
+
+
+                            }else{
+                                Toast.makeText(getApplicationContext(),
+                                        response.getString(KEY_MESSAGE), Toast.LENGTH_SHORT).show();
+
+                            }
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }, new Response.ErrorListener() {
+
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+
+                        //Display error message whenever an error occurs
+                        Toast.makeText(getApplicationContext(),
+                                error.getMessage(), Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+
+        // Access the RequestQueue through your singleton class.
+        RequestQueue queue = Volley.newRequestQueue(this);
+        MySingleton.getInstance(this).addToRequestQueue(jsArrayRequest);
+    }
+
+    // *********************************************************************
+
     public void makeCharge(View view){
         Intent myIntent = new Intent(CheckoutActivity.this, PaymentActivity.class);
         myIntent.putExtra("TOTALPR", String.valueOf(totalPrice));
@@ -241,6 +375,13 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
     }
 
 

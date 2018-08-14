@@ -68,12 +68,9 @@ public class MainActivity extends AppCompatActivity {
 
         if(isNetworkAvailable()){
             getProd();
+            updateCartList();
         }
 
-
-//        ProductViewModel c = new ProductViewModel(this.getApplication());
-//        Products x = new Products(0,"AJAB 149", "Gold-tip Mont Blanc (Black and Gold) Made in Switzerland", 678, "a1");
-//        c.insert(x);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerview);
         final ProductListAdapter adapter = new ProductListAdapter(this);
@@ -246,6 +243,10 @@ public class MainActivity extends AppCompatActivity {
     public void checkout(View view){
         Intent myIntent = new Intent(MainActivity.this, CheckoutActivity.class);
         MainActivity.this.startActivity(myIntent);
+
+    }
+
+    public void updateCartList(){
 
     }
 
