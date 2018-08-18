@@ -126,7 +126,7 @@ public class CheckoutActivity extends AppCompatActivity {
                 params.setMargins(0, 10, 0, 50);
                 myButton.setLayoutParams(params);
 
-                ///////
+                // ******************** //
 
                 totalPrice = totalPrice + p.getPrice();
 
@@ -162,6 +162,9 @@ public class CheckoutActivity extends AppCompatActivity {
 
 
         } else {
+
+
+            // ADD GOOGLE LOGIN HERE
 
             View viewlogin = inflater.inflate(R.layout.loginbutton_item, null);
 
